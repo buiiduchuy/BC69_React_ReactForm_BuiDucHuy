@@ -1,13 +1,17 @@
 import { Button, Input } from "antd"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { v4 as uuidv4} from "uuid"
 
 function App() {
+
+  const [showBtnUpdate , setShowBtnUpdate] = useState(false)
+
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm({mode: 'all'})
 
@@ -19,14 +23,38 @@ function App() {
 
   const [DanhSachSvSearch , setDanhSachSvSearch] = useState([])
 
-
   const handleSearch = (e)=> {
     const {value} = e.target
-    const list = danhSachSV.filter((item)=>(
-      item.masv.trim().includes(value.trim())
-    ))
-    setDanhSachSvSearch(list)
+    console.log("value: ", value);
+    if(value) {
+      const list = danhSachSV.filter((item)=>(
+        item.masv.trim().includes(value.trim())
+      ))
+      setDanhSachSvSearch(list)
+    }else {
+      setDanhSachSvSearch([])
+    }
   }
+
+  const handleDelete = (id)=> {
+    const newDanhSachSV = danhSachSV.filter((item)=>(
+      item.masv !== id
+    ))
+    setDanhSachSV(newDanhSachSV)
+  }
+
+  const handleEdit = (item)=> {
+    for(let i in item) {
+      setValue(`${i}`,`${item[i]}`)
+    }
+    setShowBtnUpdate(true)
+  }
+
+  const handleCancel = ()=> {
+    setShowBtnUpdate(false)
+    reset()
+  }
+  
   
   return (
     <>
@@ -36,7 +64,7 @@ function App() {
            <div className="grid md:grid-cols-2 grid-cols-1 gap-[30px] py-5">
               <div className="">
                 <label htmlFor="">Mã SV<span className="text-red-500 text-[15px] ms-1">*</span></label>
-                <input placeholder="Mã sinh viên" type="number" {...register("masv",
+                <input placeholder="Mã sinh viên" name="masv" type="number" {...register("masv",
                   {
                     required: {
                       value: true,
@@ -52,7 +80,7 @@ function App() {
               </div>
               <div className="">
                 <label htmlFor="">Họ tên<span className="text-red-500 text-[15px] ms-1">*</span></label>
-                <input placeholder="Họ tên" {...register("hoten",{
+                <input placeholder="Họ tên" name="hoten" {...register("hoten",{
                   required: {
                       value: true,
                       message: "Không được để trống"
@@ -62,7 +90,7 @@ function App() {
               </div>
               <div className="">
                 <label htmlFor="">Số điện thoại<span className="text-red-500 text-[15px] ms-1">*</span></label>
-                <input placeholder="Số điện thoại" type="number" {...register("sodt",{
+                <input placeholder="Số điện thoại" name="sodt" type="number" {...register("sodt",{
                   required: {
                       value: true,
                       message: "Không được để trống"
@@ -80,7 +108,7 @@ function App() {
               </div>
               <div className="">
                 <label htmlFor="">Email<span className="text-red-500 text-[15px] ms-1">*</span></label>
-                <input placeholder="email" {...register("email",{
+                <input placeholder="email" name="email" {...register("email",{
                   required: {
                       value: true,
                       message: "Không được để trống"
@@ -93,7 +121,23 @@ function App() {
                 {errors.email && <span className="text-red-400">{errors.email.message}</span>}
               </div>
               <div className="w-full">
-              <input type="submit" className="bg-green-400 hover:bg-white hover:text-green-400 text-white px-5 py-2 rounded-md border border-green-400 cursor-pointer transition-all" value={"Thêm sinh viên"}/>
+              {
+                showBtnUpdate ? (
+                  <>
+                  <input type="submit" 
+                  className="bg-blue-500 hover:bg-white hover:text-blue-500 text-white px-5 py-2 rounded-md border border-blue-400 cursor-pointer transition-all"
+                  value={"Cập nhật sinh viên"}/>
+
+                  <input type="submit" 
+                  className="bg-orange-500 hover:bg-white hover:text-orange-500 text-white px-5 py-2 rounded-md border border-orange-500 cursor-pointer transition-all ms-2"
+                  value={"Huỷ cập nhật"}
+                  onClick={handleCancel}
+                  />
+                  </>
+                ) : (
+                  <input type="submit" className="bg-green-400 hover:bg-white hover:text-green-400 text-white px-5 py-2 rounded-md border border-green-400 cursor-pointer transition-all" value={"Thêm sinh viên"}/>
+                )
+              }
               </div>
            </div>
         </form>
@@ -125,8 +169,14 @@ function App() {
                       <td className="py-3 px-2">{item.sodt}</td>
                       <td className="py-3 px-2">{item.email}</td>
                       <td className="text-center">
-                        <Button className="" danger>Xoá</Button>
-                        <Button className="boder border-orange-400 text-orange-400 ms-1">Sửa</Button>
+                        <Button
+                          className="" danger 
+                          onClick={()=>handleDelete(item.masv)}
+                          >Xoá</Button>
+                        <Button 
+                          className="boder border-orange-400 text-orange-400 ms-1"
+                          onClick={()=>handleEdit(item)}
+                        >Sửa</Button>
                       </td>
                     </tr>
                   ))
@@ -138,8 +188,14 @@ function App() {
                       <td className="py-3 px-2">{item.sodt}</td>
                       <td className="py-3 px-2">{item.email}</td>
                       <td className="text-center">
-                        <Button className="" danger>Xoá</Button>
-                        <Button className="boder border-orange-400 text-orange-400 ms-1">Sửa</Button>
+                        <Button
+                          className="" danger 
+                          onClick={()=>handleDelete(item.masv)}
+                          >Xoá</Button>
+                        <Button 
+                          className="boder border-orange-400 text-orange-400 ms-1"
+                          onClick={()=>handleEdit(item)}
+                        >Sửa</Button>
                       </td>
                     </tr>
                   ))
